@@ -1,0 +1,35 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# df_final 데이터프레임에서 상위 10개의 탄소 배출량을 가진 국가를 가져오기
+top_10_countries = df_final.groupby('Country')['Total'].sum().nlargest(10).index
+#wordcloud전용 상위 1만개 국가 불러오기
+top_1000_countries = df_final.groupby('Country')['Total'].sum().nlargest(10000).index
+
+df_top_10 = df_final[df_final['Country'].isin(top_10_countries)].copy()  # 명시적으로 복사본을 만듦
+df_top_1000 = df_final[df_final['Country'].isin(top_1000_countries)].copy()  # 명시적으로 복사본을 만듦
+
+# 나라별로 탄소 배출량 합계를 계산하고 내림차순으로 정렬
+country_emissions = df_top_10.groupby('Country')['Total'].sum().sort_values(ascending=False)
+sorted_countries = country_emissions.index
+#워드클라우드용 데이터 만들기
+wordcloud_country = df_top_1000.groupby('Country')['Total'].sum().sort_values(ascending=False)
+
+# df_top_10를 내림차순으로 정렬된 국가 순서대로 재정렬
+df_top_10['Country'] = pd.Categorical(df_top_10['Country'], categories=sorted_countries, ordered=True)
+
+# 데이터프레임을 'Country' 순서로 정렬
+df_top_10 = df_top_10.sort_values(by='Country', ascending=False)
+# 그래프 그리기
+plt.figure(figsize=(12, 8))
+sns.barplot(data=df_top_10, x='Country', y='Total', hue='Year', palette='viridis')
+
+# 그래프 설정
+plt.title('상위 10개 국가의 탄소 배출량 연간 추이 2017~2021')
+plt.xlabel('국가')
+plt.ylabel('총 탄소 배출량 (단위 : kg(t)CO₂eq)')
+plt.xticks(rotation=45)
+plt.legend(title='연도')
+#plt.savefig('탄소배출량 표기.png', format='png')
+plt.show()
